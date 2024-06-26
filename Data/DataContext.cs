@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using intEmp.Entity;
 
-namespace webAPI.data
+namespace intEmp.data
 {
     public class DataContext: DbContext
     {
