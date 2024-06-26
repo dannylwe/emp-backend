@@ -12,6 +12,6 @@ namespace intEmp.Entity
         public string Department {get; set;} = string.Empty;
         public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public ICollection<Salary>? Salary { get; set; }
+        public Salary? Salary { get; set; }
     }
 }
