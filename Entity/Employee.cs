@@ -14,6 +14,11 @@ namespace intEmp.Entity
         public string Email {get; set;} = string.Empty;
         public string Phone {get; set;} = string.Empty;
         public string Department {get; set;} = string.Empty;
+
+        [Required]
+        [MinLength(6)]
+        [MaxLength(100)]
+        public required byte[] PasswordHash { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public Salary? Salary { get; set; }

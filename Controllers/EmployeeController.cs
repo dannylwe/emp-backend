@@ -2,6 +2,8 @@ using AutoMapper;
 using intEmp.data;
 using intEmp.Dto;
 using intEmp.Entity;
+using intEmp.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,9 +49,13 @@ namespace intEmp.Controllers
             }
 
             var Employee = _mapper.Map<Employee>(employee);
+            Employee.PasswordHash = AuthService.HashPassword(employee.Password);
+            
             _context.Employees.Add(Employee);
             await _context.SaveChangesAsync();
-            return Ok(Employee);
+
+            var employeeResponse = _mapper.Map<EmployeeResponseDto>(Employee);
+            return Ok(employeeResponse);
         }
 
         [HttpPut]

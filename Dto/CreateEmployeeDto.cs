@@ -7,5 +7,23 @@ namespace intEmp.Dto
         public required string  Email {get; set;}
         public string? Phone {get; set;}
         public required string  Department {get; set;}
+        public required string Password { get; set; }
+    }
+
+    public class EmployeeResponseDto
+    {
+        public required string FirstName {get; set;}
+        public required string  LastName {get; set;}
+        public required string  Email {get; set;}
+        public string? Phone {get; set;}
+        public required string  Department {get; set;}
+        public SalaryResponseDto? Salary { get; set; }
+    }
+
+    public class SalaryResponseDto
+    {
+        public int BaseSalary { get; set; }
+        public int Bonus { get; set; }
+        public string? Date { get; set; }
     }
 }

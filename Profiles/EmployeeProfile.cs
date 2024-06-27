@@ -17,6 +17,11 @@ public class EmployeeProfile: Profile
                 .ForMember(dest => dest.Department, opt => opt.MapFrom(src => src.Department))
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+
+            CreateMap<Employee, EmployeeResponseDto>()
+                .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.Salary));
+
+            CreateMap<Salary, SalaryResponseDto>();
         }
     }
 }
