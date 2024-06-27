@@ -8,12 +8,15 @@ using Microsoft.IdentityModel.Tokens;
 namespace intEmp.Services;
 
 public class AuthService
-{
+
+{   
+    private static readonly byte[] FixedSalt = Encoding.UTF8.GetBytes("K___salt___Lnljnfsjnfksjnskjnfouhfwjnkjnfwekmkfnk");
     public static class AuthSettings
     {
-    public static string PrivateKey { get; set; } = "strong_key_1";
+    public static string PrivateKey { get; set; } = "strong_key_1_flkmfwlkmfwelkfmwkefmlwkemflwekmfwelkemfwekmfwe";
+    
     }
-    public string GenerateToken(Employee user)
+    public static string GenerateToken(Employee user)
     {
         var handler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(AuthSettings.PrivateKey);
@@ -42,14 +45,17 @@ public class AuthService
 
     public static byte[] HashPassword(string password)
     {
-        using var hmac = new HMACSHA512();
-        return hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        using var hmac = new HMACSHA512(FixedSalt);
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        Console.WriteLine(hash);
+        return hash;
     }
 
     public static bool VerifyPassword(string password, byte[] hashedPassword)
     {
-        using var hmac = new HMACSHA512();
+        using var hmac = new HMACSHA512(FixedSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+        Console.WriteLine(computedHash);
         return computedHash.SequenceEqual(hashedPassword);
     }
 }
