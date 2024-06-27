@@ -17,6 +17,10 @@ namespace intEmp.data
                 .HasOne(s => s.Employee)
                 .WithOne(e => e.Salary)
                 .HasForeignKey<Salary>(s => s.EmployeeId);
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.Email)
+                .IsUnique();
         }
 
         private void UpdateTimestamps()
@@ -41,7 +45,7 @@ namespace intEmp.data
             UpdateTimestamps();
             return base.SaveChangesAsync(cancellationToken);
         }
-        
+
         public override int SaveChanges()
         {
             UpdateTimestamps();

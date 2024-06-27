@@ -13,7 +13,7 @@ namespace intEmp.Controllers
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        // private readonly IMapper _mapper;
+
         public EmployeeController(DataContext context, IMapper mapper)
         {
             _context = context;
@@ -41,6 +41,11 @@ namespace intEmp.Controllers
         [HttpPost]
         public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employee)
         {   
+            if (await _context.Employees.AnyAsync(e => e.Email == employee.Email))
+            {
+                return Conflict("Email already exists.");
+            }
+
             var Employee = _mapper.Map<Employee>(employee);
             _context.Employees.Add(Employee);
             await _context.SaveChangesAsync();
