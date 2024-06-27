@@ -25,8 +25,9 @@ namespace intEmp.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Employee>>> GetAllEmployees()
         {
-            var employees = await _context.Employees.ToListAsync();
-            return Ok(employees);
+            var employees = await _context.Employees.Include(e => e.Salary).ToListAsync();
+            var employeeResponseDtos = _mapper.Map<List<EmployeeResponseDto>>(employees);
+            return Ok(employeeResponseDtos);
         }
 
         [HttpGet("{id}")]
@@ -37,7 +38,8 @@ namespace intEmp.Controllers
             {
                 return NotFound("");
             }
-            return Ok(employee);
+            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(employee);
+            return Ok(employeeResponseDto);
         }
 
         [HttpPost]
@@ -71,7 +73,24 @@ namespace intEmp.Controllers
             dbEmployee.LastName = updateEmployee.LastName;
             dbEmployee.Phone = updateEmployee.Phone;
             await _context.SaveChangesAsync();
-            return Ok(dbEmployee);
+
+            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(dbEmployee);
+            return Ok(employeeResponseDto);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
+        {
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
