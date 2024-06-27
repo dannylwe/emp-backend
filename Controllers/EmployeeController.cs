@@ -1,4 +1,8 @@
+using System.Globalization;
+using System.Text;
 using AutoMapper;
+using CsvHelper;
+using CsvHelper.Configuration;
 using intEmp.data;
 using intEmp.Dto;
 using intEmp.Entity;
@@ -94,6 +98,37 @@ namespace intEmp.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportCsv()
+        {
+            var employees = await _context.Employees.ToListAsync();
+
+            var records = employees.Select(e => new EmployeeCsvDto
+            {
+                FirstName = e.FirstName,
+                LastName = e.LastName,
+                Email = e.Email,
+                Phone = e.Phone,
+                Department = e.Department
+            }).ToList();
+
+            // Generate CSV file
+            // Generate CSV file
+            byte[] csvData;
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var writer = new StreamWriter(memoryStream, Encoding.UTF8))
+                {
+                    using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture));
+                    csv.WriteRecords(records);
+                }
+                csvData = memoryStream.ToArray();
+            }
+
+            // Return CSV file as a downloadable file
+            return File(csvData, "text/csv", "employees.csv");
         }
     }
 }
