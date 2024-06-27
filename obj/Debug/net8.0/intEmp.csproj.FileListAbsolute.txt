@@ -155,3 +155,4 @@
 /Users/kjewoihfe/projects/net_apps/intEmp/bin/Debug/net8.0/runtimes/win-arm64/native/e_sqlite3.dll
 /Users/kjewoihfe/projects/net_apps/intEmp/bin/Debug/net8.0/runtimes/win-x64/native/e_sqlite3.dll
 /Users/kjewoihfe/projects/net_apps/intEmp/bin/Debug/net8.0/runtimes/win-x86/native/e_sqlite3.dll
+/Users/kjewoihfe/projects/net_apps/intEmp/bin/Debug/net8.0/AutoMapper.dll

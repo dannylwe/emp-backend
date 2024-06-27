@@ -18,6 +18,35 @@ namespace intEmp.data
                 .WithOne(e => e.Salary)
                 .HasForeignKey<Salary>(s => s.EmployeeId);
         }
+
+        private void UpdateTimestamps()
+        {
+            var entries = ChangeTracker.Entries()
+                .Where(e => e.Entity is Employee && 
+                            (e.State == EntityState.Added || e.State == EntityState.Modified));
+
+            foreach (var entry in entries)
+            {
+                var employee = (Employee)entry.Entity;
+                if (entry.State == EntityState.Added)
+                {
+                    employee.CreatedAt = DateTime.UtcNow;
+                }
+                employee.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            UpdateTimestamps();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+        
+        public override int SaveChanges()
+        {
+            UpdateTimestamps();
+            return base.SaveChanges();
+        }
     }
     
 }

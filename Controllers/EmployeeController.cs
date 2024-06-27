@@ -1,4 +1,6 @@
+using AutoMapper;
 using intEmp.data;
+using intEmp.Dto;
 using intEmp.Entity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +12,12 @@ namespace intEmp.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly DataContext _context;
-        public EmployeeController(DataContext context)
+        private readonly IMapper _mapper;
+        // private readonly IMapper _mapper;
+        public EmployeeController(DataContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -34,11 +39,12 @@ namespace intEmp.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Employee>> CreateHero(Employee employee)
-        {
-            _context.Employees.Add(employee);
+        public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employee)
+        {   
+            var Employee = _mapper.Map<Employee>(employee);
+            _context.Employees.Add(Employee);
             await _context.SaveChangesAsync();
-            return Ok(employee);
+            return Ok(Employee);
         }
 
         [HttpPut]
