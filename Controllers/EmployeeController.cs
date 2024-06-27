@@ -67,10 +67,10 @@ namespace intEmp.Controllers
             return Ok(employeeResponse);
         }
 
-        [HttpPut]
-        public async Task<ActionResult<Employee>> UpdateHero(Employee updateEmployee)
-        {
-            var dbEmployee = await _context.Employees.FindAsync(updateEmployee.Id);
+        [HttpPut("{id}")]
+        public async Task<ActionResult<Employee>> UpdateHero(int id, UpdateEmployeeDto updateEmployee)
+        {   
+            var dbEmployee = await _context.Employees.FindAsync(id);
             if(dbEmployee is null)
             {
                 return NotFound("");
@@ -79,6 +79,7 @@ namespace intEmp.Controllers
             dbEmployee.FirstName = updateEmployee.FirstName;
             dbEmployee.LastName = updateEmployee.LastName;
             dbEmployee.Phone = updateEmployee.Phone;
+            dbEmployee.Department = updateEmployee.Department;
             await _context.SaveChangesAsync();
 
             var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(dbEmployee);
@@ -114,8 +115,6 @@ namespace intEmp.Controllers
                 Department = e.Department
             }).ToList();
 
-            // Generate CSV file
-            // Generate CSV file
             byte[] csvData;
             using (var memoryStream = new MemoryStream())
             {
