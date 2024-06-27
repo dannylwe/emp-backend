@@ -3,6 +3,7 @@ using intEmp.data;
 using intEmp.Dto;
 using intEmp.Entity;
 using intEmp.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace intEmp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class EmployeeController : ControllerBase
     {
         private readonly DataContext _context;
@@ -42,6 +44,7 @@ namespace intEmp.Controllers
             return Ok(employeeResponseDto);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employee)
         {   
