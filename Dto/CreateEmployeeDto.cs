@@ -8,6 +8,7 @@ namespace intEmp.Dto
         public string? Phone {get; set;}
         public string?  Department {get; set;}
         public required string Password { get; set; }
+        public int BaseSalary { get; set; } = 0;
     }
 
     public class UpdateEmployeeDto

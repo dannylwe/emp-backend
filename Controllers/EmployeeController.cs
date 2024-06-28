@@ -39,7 +39,9 @@ namespace intEmp.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetSingleEmployee(int id)
         {
-            var employee = await _context.Employees.FindAsync(id);
+            var employee = await _context.Employees
+                .Include(e => e.Salary)
+                .FirstOrDefaultAsync(e => e.Id == id);
             if(employee is null)
             {
                 return NotFound("");
@@ -50,20 +52,28 @@ namespace intEmp.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employee)
+        public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employeeDto)
         {   
-            if (await _context.Employees.AnyAsync(e => e.Email == employee.Email))
+            if (await _context.Employees.AnyAsync(e => e.Email == employeeDto.Email))
             {
                 return Conflict("Email already exists.");
             }
 
-            var Employee = _mapper.Map<Employee>(employee);
-            Employee.PasswordHash = AuthService.HashPassword(employee.Password);
+            var employee = _mapper.Map<Employee>(employeeDto);
+            employee.PasswordHash = AuthService.HashPassword(employeeDto.Password);
+
+            employee.Salary = new Salary
+            {
+                BaseSalary = employeeDto.BaseSalary,
+                Bonus = 0,
+                Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Employee = employee
+            };
             
-            _context.Employees.Add(Employee);
+            _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
-            var employeeResponse = _mapper.Map<EmployeeResponseDto>(Employee);
+            var employeeResponse = _mapper.Map<EmployeeResponseDto>(employee);
             return Ok(employeeResponse);
         }
 
