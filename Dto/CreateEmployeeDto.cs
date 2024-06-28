@@ -19,6 +19,8 @@ namespace intEmp.Dto
         public required string Phone {get; set;}
         public required string  Department {get; set;}
         public required string Password { get; set; }
+        public int BaseSalary { get; set; } = 0;
+        public int Bonus { get; set; } = 0;
     }
 
     public class EmployeeResponseDto

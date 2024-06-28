@@ -52,7 +52,7 @@ namespace intEmp.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<Employee>> CreateHero(CreateEmployeeDto employeeDto)
+        public async Task<ActionResult<Employee>> CreateEmployee(CreateEmployeeDto employeeDto)
         {   
             if (await _context.Employees.AnyAsync(e => e.Email == employeeDto.Email))
             {
@@ -78,21 +78,37 @@ namespace intEmp.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Employee>> UpdateHero(int id, UpdateEmployeeDto updateEmployee)
+        public async Task<ActionResult<Employee>> UpdateEmployee(int id, UpdateEmployeeDto updateEmployeeDto)
         {   
-            var dbEmployee = await _context.Employees.FindAsync(id);
-            if(dbEmployee is null)
+            var employee = await _context.Employees.Include(e => e.Salary).FirstOrDefaultAsync(e => e.Id == id);
+            if(employee is null)
             {
                 return NotFound("");
             }
-            dbEmployee.Email = updateEmployee.Email;
-            dbEmployee.FirstName = updateEmployee.FirstName;
-            dbEmployee.LastName = updateEmployee.LastName;
-            dbEmployee.Phone = updateEmployee.Phone;
-            dbEmployee.Department = updateEmployee.Department;
+            employee.Email = updateEmployeeDto.Email;
+            employee.FirstName = updateEmployeeDto.FirstName;
+            employee.LastName = updateEmployeeDto.LastName;
+            employee.Phone = updateEmployeeDto.Phone;
+            employee.Department = updateEmployeeDto.Department;
+            employee.PasswordHash = AuthService.HashPassword(updateEmployeeDto.Password);
+            
+            if (employee.Salary != null) {
+                employee.Salary = new Salary
+                {
+                    BaseSalary = updateEmployeeDto.BaseSalary,
+                    Bonus = updateEmployeeDto.Bonus,
+                    Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"), 
+                    Employee = employee
+                };
+            } else {
+                employee.Salary.BaseSalary = updateEmployeeDto.BaseSalary;
+                employee.Salary.Bonus = updateEmployeeDto.Bonus;
+                employee.Salary.Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
             await _context.SaveChangesAsync();
 
-            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(dbEmployee);
+            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(employee);
             return Ok(employeeResponseDto);
         }
 
