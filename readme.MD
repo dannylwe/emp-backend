@@ -1,5 +1,12 @@
 # intEmp API Documentation
 
+## How to run the project
+- clone repo
+- cd intEmp
+- dotnet build
+- dotnet run
+- Application will be running on http://localhost:5103
+
 ## Overview
 Welcome to the intEmp API documentation. This API provides endpoints for employee management and authentication. 
 
