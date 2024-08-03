@@ -1,16 +1,8 @@
-using System.Globalization;
-using System.Text;
-using AutoMapper;
-using CsvHelper;
-using CsvHelper.Configuration;
-using intEmp.data;
 using intEmp.Dto;
 using intEmp.Entity;
 using intEmp.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace intEmp.Controllers
 {
@@ -19,140 +11,81 @@ namespace intEmp.Controllers
     [Authorize]
     public class EmployeeController : ControllerBase
     {
-        private readonly DataContext _context;
-        private readonly IMapper _mapper;
+        private readonly IEmployeeService _employeeService;
 
-        public EmployeeController(DataContext context, IMapper mapper)
+        public EmployeeController(IEmployeeService employeeService)
         {
-            _context = context;
-            _mapper = mapper;
+            _employeeService = employeeService;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Employee>>> GetAllEmployees()
         {
-            var employees = await _context.Employees.Include(e => e.Salary).ToListAsync();
-            var employeeResponseDtos = _mapper.Map<List<EmployeeResponseDto>>(employees);
-            return Ok(employeeResponseDtos);
+            var employees = await _employeeService.GetAllEmployees();
+            return Ok(employees);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Employee>> GetSingleEmployee(int id)
         {
-            var employee = await _context.Employees
-                .Include(e => e.Salary)
-                .FirstOrDefaultAsync(e => e.Id == id);
-            if(employee is null)
+            var employee = await _employeeService.GetSingleEmployee(id);
+            if (employee == null)
             {
-                return NotFound("");
+                return NotFound();
             }
-            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(employee);
-            return Ok(employeeResponseDto);
-        }
+            return Ok(employee);
+        }   
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult<Employee>> CreateEmployee(CreateEmployeeDto employeeDto)
+        public async Task<ActionResult<Employee>> CreateEmployee(CreateEmployeeDto Employee)
         {   
-            if (await _context.Employees.AnyAsync(e => e.Email == employeeDto.Email))
+            var employee = await _employeeService.CreateEmployee(Employee);
+            if (employee == null)
             {
                 return Conflict("Email already exists.");
             }
-
-            var employee = _mapper.Map<Employee>(employeeDto);
-            employee.PasswordHash = AuthService.HashPassword(employeeDto.Password);
-
-            employee.Salary = new Salary
-            {
-                BaseSalary = employeeDto.BaseSalary,
-                Bonus = 0,
-                Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                Employee = employee
-            };
-            
-            _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
-
-            var employeeResponse = _mapper.Map<EmployeeResponseDto>(employee);
-            return Ok(employeeResponse);
+            return Ok(employee);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Employee>> UpdateEmployee(int id, UpdateEmployeeDto updateEmployeeDto)
-        {   
-            var employee = await _context.Employees.Include(e => e.Salary).FirstOrDefaultAsync(e => e.Id == id);
-            if(employee is null)
+        public async Task<ActionResult<EmployeeResponseDto>> UpdateEmployee(int id, UpdateEmployeeDto updateEmployeeDto)
+        {
+            var employee = await _employeeService.UpdateEmployee(id, updateEmployeeDto);
+            if (employee == null)
             {
-                return NotFound("");
+                return NotFound();
             }
-            employee.Email = updateEmployeeDto.Email;
-            employee.FirstName = updateEmployeeDto.FirstName;
-            employee.LastName = updateEmployeeDto.LastName;
-            employee.Phone = updateEmployeeDto.Phone;
-            employee.Department = updateEmployeeDto.Department;
-            employee.PasswordHash = AuthService.HashPassword(updateEmployeeDto.Password);
-            
-            if (employee.Salary != null) {
-                employee.Salary = new Salary
-                {
-                    BaseSalary = updateEmployeeDto.BaseSalary,
-                    Bonus = updateEmployeeDto.Bonus,
-                    Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"), 
-                    Employee = employee
-                };
-            } else {
-                employee.Salary.BaseSalary = updateEmployeeDto.BaseSalary;
-                employee.Salary.Bonus = updateEmployeeDto.Bonus;
-                employee.Salary.Date = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
-
-            await _context.SaveChangesAsync();
-
-            var employeeResponseDto = _mapper.Map<EmployeeResponseDto>(employee);
-            return Ok(employeeResponseDto);
+            return Ok(employee);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Id == id);
-            if (employee == null)
-            {
+            var employee = await _employeeService.DeleteEmployee(id);
+            if (!employee) {
                 return NotFound();
             }
-
-            _context.Employees.Remove(employee);
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
+
+        // [HttpDelete("all")]
+        // public async Task<IActionResult> DeleteAllEmployees()
+        // {   
+        //     var allEmployees = await _context.Employees.Include(e => e.Salary).ToListAsync();
+
+        //     foreach (Employee employee in allEmployees) {
+        //         _context.Employees.Remove(employee);
+        //     }
+        //     await _context.SaveChangesAsync();
+
+        //     return NoContent();
+        // }
 
         [HttpGet("export")]
         public async Task<IActionResult> ExportCsv()
         {
-            var employees = await _context.Employees.ToListAsync();
-
-            var records = employees.Select(e => new EmployeeCsvDto
-            {
-                FirstName = e.FirstName,
-                LastName = e.LastName,
-                Email = e.Email,
-                Phone = e.Phone,
-                Department = e.Department
-            }).ToList();
-
-            byte[] csvData;
-            using (var memoryStream = new MemoryStream())
-            {
-                using (var writer = new StreamWriter(memoryStream, Encoding.UTF8))
-                {
-                    using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture));
-                    csv.WriteRecords(records);
-                }
-                csvData = memoryStream.ToArray();
-            }
-
-            // Return CSV file as a downloadable file
+            var csvData = await _employeeService.ExportCsv();
             return File(csvData, "text/csv", "employees.csv");
         }
     }
